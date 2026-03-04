@@ -13,9 +13,9 @@ const MONGODB_URI = process.env.MONGODB_URI || "mongodb://localhost:27017/Trust"
 let DB_NAME = process.env.DB_NAME || '';
 try {
   if (!DB_NAME) {
-    const m = MONGODB_URI.match(/mongodb(?:\+srv)?:\/\/[^/]+\/(?<db>[^?]+)/);
-    if (m && m.groups && m.groups.db) {
-      DB_NAME = decodeURIComponent(m.groups.db);
+    const m = MONGODB_URI.match(/mongodb(?:\+srv)?:\/\/[^/]+\/([^?]+)/);
+    if (m && m[1]) {
+      DB_NAME = decodeURIComponent(m[1]);
     } else {
       DB_NAME = 'test';
     }
