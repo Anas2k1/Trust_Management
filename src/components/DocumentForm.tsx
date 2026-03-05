@@ -96,28 +96,40 @@ export default function DocumentForm({
           <form onSubmit={handleSubmit} className="space-y-4">
             {/* Existing fields */}
             <div className="space-y-3">
-              {Object.entries(formData).map(([key, value]) => (
-                <div key={key} className="flex gap-2 items-end">
-                  <div className="flex-1">
-                    <label className="text-sm text-slate-300 block mb-1">
-                      {key}
-                    </label>
-                    <input
-                      type="text"
-                      value={value}
-                      onChange={(e) => handleInputChange(key, e.target.value)}
-                      className="w-full px-3 py-2 bg-slate-900 border border-slate-600 rounded text-white focus:border-blue-500 outline-none"
-                    />
+              {Object.entries(formData).map(([key, value]) => {
+                // Check if this is a read-only field
+                const isReadOnly = ['createdAt', 'updatedAt', '__v'].includes(key);
+                const isTimestamp = key === 'createdAt' || key === 'updatedAt';
+                const displayValue = isTimestamp ? new Date(value).toLocaleString() : value;
+
+                return (
+                  <div key={key} className="flex gap-2 items-end">
+                    <div className="flex-1">
+                      <label className="text-sm text-slate-300 block mb-1">
+                        {key} {isReadOnly && <span className="text-xs text-slate-500">(read-only)</span>}
+                      </label>
+                      <input
+                        type="text"
+                        value={displayValue}
+                        onChange={(e) => handleInputChange(key, e.target.value)}
+                        disabled={isReadOnly}
+                        className={`w-full px-3 py-2 bg-slate-900 border border-slate-600 rounded text-white focus:border-blue-500 outline-none ${
+                          isReadOnly ? 'opacity-50 cursor-not-allowed' : ''
+                        }`}
+                      />
+                    </div>
+                    {!isReadOnly && (
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveField(key)}
+                        className="px-3 py-2 bg-red-600 hover:bg-red-700 rounded text-white"
+                      >
+                        Remove
+                      </button>
+                    )}
                   </div>
-                  <button
-                    type="button"
-                    onClick={() => handleRemoveField(key)}
-                    className="px-3 py-2 bg-red-600 hover:bg-red-700 rounded text-white"
-                  >
-                    Remove
-                  </button>
-                </div>
-              ))}
+                );
+              })}
             </div>
 
             {/* Add new field */}

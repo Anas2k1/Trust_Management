@@ -74,7 +74,36 @@ export default function DocumentTable({
     );
   }
 
-  const columns = documents.length > 0 ? Object.keys(documents[0]) : [];
+  // Get all unique columns from all documents (not just the first one)
+  // This ensures we display fields that exist in any document
+  const columnSet = new Set<string>();
+  documents.forEach(doc => {
+    Object.keys(doc).forEach(key => {
+      if (key !== '__v') { // Filter out __v (version field)
+        columnSet.add(key);
+      }
+    });
+  });
+  
+  // Sort columns: _id first, then regular fields, then timestamps
+  const columns = Array.from(columnSet).sort((a, b) => {
+    if (a === '_id') return -1;
+    if (b === '_id') return 1;
+    if (a === 'createdAt' || a === 'updatedAt') return 1;
+    if (b === 'createdAt' || b === 'updatedAt') return -1;
+    return a.localeCompare(b);
+  });
+
+  // Helper function to format values for display
+  const formatValue = (col: string, value: any): string => {
+    if (col === '_id') {
+      return String(value).slice(0, 12) + '...';
+    }
+    if (col === 'createdAt' || col === 'updatedAt') {
+      return new Date(value).toLocaleDateString() + ' ' + new Date(value).toLocaleTimeString();
+    }
+    return String(value);
+  };
 
   return (
     <div className="bg-slate-800 rounded-lg overflow-hidden border border-slate-700">
@@ -108,10 +137,12 @@ export default function DocumentTable({
                   >
                     {col === "_id" ? (
                       <code className="text-xs bg-slate-900 px-2 py-1 rounded">
-                        {String(doc[col]).slice(0, 12)}...
+                        {formatValue(col, doc[col])}
                       </code>
+                    ) : doc[col] !== undefined ? (
+                      formatValue(col, doc[col])
                     ) : (
-                      String(doc[col])
+                      <span className="text-slate-500 italic">—</span>
                     )}
                   </td>
                 ))}
